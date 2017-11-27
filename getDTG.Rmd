@@ -1,0 +1,185 @@
+---
+title:  "Detection of differential translation genes (DTGs) using DESeq2 interaction term"
+output:
+  #pdf_document
+  #html_document
+  github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+Here we present the protocol to carry out differential translation analysis using DESeq2 interaction term,
+and also pointers on how to interpret and visualize this data.
+
+![Interaction term for differential translation regulation: Given an experimental setup with Ribo-seq (s = 1) and RNA-seq (s = 0) carried out at multiple conditions (c, here 0 and 1), the change in ribosome occupancy is confounded by the change in mRNA levels. Here we show that the interaction term coefficient is the actual change in translation correcting for change driven by transcription. The design with the interaction term, translates to a linear equation corresponding to the log counts at a given c (condition) and s (sequencing type). Substituting the c and s values in the equation given above, would then give us the transcription and translation (confounded) fold changes. So to obtain the translation only fold change we have to subtract from it the transcription effect which gives us the interaction term coefficient B3 as shown above. Furthermore, we show that this interaction term coefficient can give us the fold change in translation efficiency](model.png)
+
+#{.tabset}
+
+```{r load, message=FALSE}
+library(DESeq2)
+```
+
+
+
+## Input files
+
+Calculating differential translation genes (DTGs) requires the count matrices from Ribo-seq and RNA-seq.
+These should be the raw counts obtained from feature counts or any other tool for counting reads, 
+they should not be normalized or batch corrected.
+
+#### 1) Count matrix files (Ribo-seq and RNA-seq)
+
+| GeneID | Sample1 | Sample2 | Sample3 | Sample4 | 
+|-------|------|-----|---|----|
+| ENSG1 | 1290 | 130 | 2 | 10 | 
+| ENSG2 | 0 | 2 | 10 | 5 |
+
+It also requires a sample information file which should be in the same order as samples in the count
+matrices. It should include information on sequencing type, treatment, batch or any other covariate you 
+need to model.
+
+####2) Sample Information file
+
+|SampleID|Condition|SeqType|Batch|
+|-------|-------|--------|-|
+|Sample1|Control|Ribo-seq|1|
+|Sample2|Control|Ribo-seq|2|
+|Sample3|Condition|Ribo-seq|3|  
+|Sample4|Condition|Ribo-seq|4|
+|Sample5|Control|RNA-seq|1|  
+|Sample6|Control|RNA-seq|2| 
+|Sample7|Condition|RNA-seq|3| 
+|Sample8|Condition|RNA-seq|4| 
+
+```{r read data}
+
+### Get count matrix files and sample information
+
+# Input filenames
+ribo_file <- "ribo_sample.txt"
+rna_file <- "rna_sample.txt"
+data_file <- "sample_info.txt"
+
+# Read and merge count matrices
+ribo <- read.delim(ribo_file)  
+rna <- read.delim(rna_file)
+merge <- cbind(ribo,rna)
+
+head(merge)
+
+# Sample information file
+coldata <- read.delim(data_file)
+coldata <- as.data.frame(apply(coldata,2,as.factor))
+
+head(coldata)
+
+```
+
+## Detecting differential translation regulation
+
+We implemented the interaction term model to identify DTGs as explained in Figure 1.
+
+
+```{r get_DTGs}
+### DESeq2 object with batch and interaction term in the design
+ddsMat <- DESeqDataSetFromMatrix(countData = merge,
+            colData = coldata, design =~ Batch + Condition + SeqType + Condition:SeqType)
+    
+ddsMat$SeqType = relevel(ddsMat$SeqType,"RNA-seq")
+ddsMat <- DESeq(ddsMat)
+
+resultsNames(ddsMat)
+
+# Choose the term you want to look at from resultsNames(ddsMat) 
+# Condition2.SeqTypeRibo.seq means Changes in Ribo-seq levels in Condition2 vs
+# Condition1 accounting for changes in RNA-seq levels in Condition2 vs Condition1
+res <- results(ddsMat, contrast=list("Condition2.SeqTypeRibo.seq"))
+
+summary(res)
+
+length(which(res$padj < 0.05))
+
+DESeq2::plotMA(res)
+
+### If you have multiple conditions or a time-series you can use the LRT as below
+
+ddsMat_LRT <- DESeq(ddsMat, test="LRT", reduced =~ Batch + Condition + SeqType,
+                    full =~ Batch + Condition + SeqType + Condition:SeqType)
+
+res_lrt <- results(ddsMat_LRT)
+
+summary(res_lrt)
+
+length(which(res_lrt$padj < 0.05))
+
+```
+
+## Visualisation and interpretation
+
+DTGs can be of several categories:  
+  
+  
+1) Purely translation regulated  
+  
+2) Regulated by both transcription and translation  
+    a) Buffered  
+    b) Amplified  
+    c) Weakened  
+    
+Depending on differential expression for RNA-seq and Ribo-seq of the genes you can 
+categorize them into these. So for example, for the gene below the mRNA abundance is 
+increasing but the ribosome occupancy is remaining constant. It is identified as a DTG, 
+for which the translation regulation counteracts the transcription.
+  
+```{r run_ribo_de}
+
+### DESeq2 object with batch for Ribo-seq
+ind = which(coldata$SeqType == "Ribo-seq")
+coldata_ribo = coldata[ind,]
+ddsMat_ribo <- DESeqDataSetFromMatrix(countData = ribo,
+            colData = coldata_ribo, design =~ Batch + Condition)
+ddsMat_ribo <- DESeq(ddsMat_ribo)
+res_ribo <- results(ddsMat_ribo, contrast=list("Condition_2_vs_1"))
+
+```
+
+```{r run_rna_de}
+
+### DESeq2 object with batch for RNA-seq
+ind = which(coldata$SeqType == "RNA-seq")
+coldata_rna = coldata[ind,]
+ddsMat_rna <- DESeqDataSetFromMatrix(countData = rna,
+            colData = coldata_rna, design =~ Batch + Condition)
+ddsMat_rna <- DESeq(ddsMat_rna)
+res_rna <- results(ddsMat_rna, contrast=list("Condition_2_vs_1"))
+```
+
+
+```{r vis}
+
+DTG = which(res$padj < 0.05)[1]
+
+### Example of a differentially translated gene
+y_u = max(res$log2FoldChange[DTG],res_ribo$log2FoldChange[DTG], res_rna$log2FoldChange[DTG])
+y_l = min(res$log2FoldChange[DTG],res_ribo$log2FoldChange[DTG], res_rna$log2FoldChange[DTG])
+plot(c(1,2),c(0,res$log2FoldChange[DTG]),type="l",col="red",xaxt="n",
+     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change", 
+     main="Translationally buffered gene")
+lines(c(1,2),c(0,res_ribo$log2FoldChange[DTG]),col="gray")
+lines(c(1,2),c(0,res_rna$log2FoldChange[DTG]),col="blue")
+axis(1,at=c(1,2),labels=c(1,2),las=1)
+legend("bottomleft",c("RNA","Ribo","RibOnly"), fill=c("blue","gray","red"),
+       cex=1, border = NA, bty="n")
+
+```
+
+
+
+We applied the above given script to obtain DTGs in primary human fibroblasts which were stimulated with TGFB
+and captured at 5 time points (This data also conatined a sample batch effect). 
+In order to compare DTG detection on real data, we execute Xtail, RiboDiff and Riborex in default settings.
+Since there were 5 time points (4 after stimulation, 1 basal) we did pairwise comparisons of each time point 
+vs basal to obtain all the possible DTGs.

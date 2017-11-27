@@ -1,0 +1,17 @@
+Samples,Data_Type,Conditions
+1_Ribo,Ribo-Seq,0
+2_Ribo,Ribo-Seq,0
+3_Ribo,Ribo-Seq,0
+4_Ribo,Ribo-Seq,0
+5_Ribo,Ribo-Seq,1
+6_Ribo,Ribo-Seq,1
+7_Ribo,Ribo-Seq,1
+8_Ribo,Ribo-Seq,1
+9_RNA,RNA-Seq,0
+10_RNA,RNA-Seq,0
+11_RNA,RNA-Seq,0
+12_RNA,RNA-Seq,0
+13_RNA,RNA-Seq,1
+14_RNA,RNA-Seq,1
+15_RNA,RNA-Seq,1
+16_RNA,RNA-Seq,1
