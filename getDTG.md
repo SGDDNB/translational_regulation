@@ -162,7 +162,7 @@ length(which(res$padj < 0.05))
 DESeq2::plotMA(res)
 ```
 
-![](TR_files/figure-markdown_github-ascii_identifiers/get_DTGs-1.png)
+![](getDTG_files/figure-markdown_github-ascii_identifiers/get_DTGs-1.png)
 
 ``` r
 ### If you have multiple conditions or a time-series you can use the LRT as below
@@ -288,6 +288,6 @@ legend("bottomleft",c("RNA","Ribo","RibOnly"), fill=c("blue","gray","red"),
        cex=1, border = NA, bty="n")
 ```
 
-![](TR_files/figure-markdown_github-ascii_identifiers/vis-1.png)
+![](getDTG_files/figure-markdown_github-ascii_identifiers/vis-1.png)
 
 We applied the above given script to obtain DTGs in primary human fibroblasts which were stimulated with TGFB and captured at 5 time points (This data also conatined a sample batch effect). In order to compare DTG detection on real data, we execute Xtail, RiboDiff and Riborex in default settings. Since there were 5 time points (4 after stimulation, 1 basal) we did pairwise comparisons of each time point vs basal to obtain all the possible DTGs.
