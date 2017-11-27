@@ -1,8 +1,9 @@
 ---
 title: "Supplementary methods"
-subtitle: "Benchmarking of different methods for detection of DTGs on simulated data"
-output: 
-    pdf_document
+subtitle: Benchmarking of different methods for detection of DTGs on simulated data
+output:
+  github_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -134,7 +135,7 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
     ddsMat <- DESeq(ddsMat)
     res <- results(ddsMat, contrast=list("group1.seq_typeRNA"))
     length(which(res$padj < 0.05))
-    #DESeq2::plotMA(res)
+    DESeq2::plotMA(res)
     
     # Check batch effects based on PC1 and PC2 (Principal component analysis)
     group1 <- coldata$group[which(coldata$seq_type == "Ribo")]
@@ -146,7 +147,7 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
     vsd_nobatch <- removeBatchEffect(vsd, batch1)
     plotPCA(vsd_nobatch,1,2,coldata, "After batch correction")
     
-    res_all <- matrix(nrow=nrow(res),ncol=7)
+    res_all <- matrix(nrow=nrow(res),ncol=4)
     res_all[,1] = res$padj
     
     ### Running Riborex
@@ -156,21 +157,12 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
     res.riborex.deseq2 <- riborex(sim_rna,sim_ribo, rnacond, rnacond,engine="DESeq2")
     length(which(res.riborex.deseq2$padj< 0.05))
     res_all[,2] = res.riborex.deseq2$padj[order(as.numeric(rownames(res.riborex.deseq2)))]
-    res.riborex.edgeR <- riborex(sim_rna,sim_ribo, rnacond, rnacond,engine="edgeR")
-    length(which(res.riborex.edgeR$table$FDR < 0.05))
-    res_all[,3] = res.riborex.edgeR$table$FDR[order(as.numeric(rownames(res.riborex.edgeR$table)))]
-    res.riborex.edgeRD <- riborex(sim_rna,sim_ribo, rnacond, rnacond,engine="edgeRD")
-    length(which(res.riborex.edgeRD$table$FDR < 0.05))
-    res_all[,4] = res.riborex.edgeRD$table$FDR[order(as.numeric(rownames(res.riborex.edgeRD$table)))]
-    res.riborex.voom <- riborex(sim_rna,sim_ribo, rnacond, rnacond,engine="Voom")
-    length(which(res.riborex.voom$adj.P.Val < 0.05))
-    res_all[,5] = res.riborex.voom$adj.P.Val[order(as.numeric(rownames(res.riborex.voom)))]
     
     if(all_methods == TRUE){
       ### Running Xtail
       xtail <- xtail(sim_rna,sim_ribo,rnacond)
       length(which(xtail$resultsTable$pvalue.adjust < 0.05))
-      res_all[,6] = xtail$resultsTable$pvalue.adjust
+      res_all[,3] = xtail$resultsTable$pvalue.adjust
       
       ### Running RiboDiff
       counts_ribodiff = cbind(seq(1,nrow(merged),by=1),merged)  
@@ -179,13 +171,13 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
 system("python ~/bin/RiboDiff/scripts/TE.py -e coldata.txt -c counts_forRibodiff.txt -o output_RiboDiff.txt")
       ribodiff <- read.delim("output_RiboDiff.txt",sep="\t")
       length(which(ribodiff$padj < 0.05))
-      res_all[,7] = ribodiff$padj
+      res_all[,4] = ribodiff$padj
       system("rm output_RiboDiff.txt")
       system("rm output_RiboDiff.pkl")
       system("rm counts_forRibodiff.txt")
     }
     
-    #plot_ss(res_all,labels,dTE_genes,bcoeff,bgenes)
+    plot_ss(res_all,labels,dTE_genes,bcoeff,bgenes)
 }
 ```
 
@@ -203,10 +195,11 @@ plot_ss=function(res_all,labels,dTE_genes,bcoeff,bgenes){
   # FDR thresholds
   FDR_cutoffs=seq(0,0.2,by=0.001)
   plot(FDR_cutoffs,rep(0,length(FDR_cutoffs)),
-    ylim=c(0,1),col="white",type="l",xlab="FDR cutoff",ylab="Sensitivity and Specificity")
+    ylim=c(0,1),col="white",type="l",xlab="FDR cutoff",
+    ylab="Sensitivity and Specificity",main=paste("Batch coeff: ",bcoeff,sep=""))
   
   library(RColorBrewer)
-  cols <- brewer.pal(7, "Set2")
+  cols <- c("darkgreen","orange","yellow","purple")
   roc = matrix(nrow=length(FDR_cutoffs),ncol=2)
   roc_all = matrix(nrow=length(FDR_cutoffs),ncol=0)
   
@@ -234,8 +227,7 @@ plot_ss=function(res_all,labels,dTE_genes,bcoeff,bgenes){
     lines(FDR_cutoffs,roc[,2],type="l",col=cols[j],lty=2,lwd=2)
     roc_all = cbind(roc_all,roc)
   }  
-  legend("topright",c("DESeq2","Riborex: DESeq2","Riborex: edgeR",
-    "Riborex: edgeRD","Riborex: voom","Xtail","RiboDiff"),
+  legend("topright",c("DESeq2","Riborex: DESeq2","Xtail","RiboDiff"),
     fill=cols,bty="n",border=NA,cex = 0.8)
   
   fdr = 0.05
@@ -351,14 +343,17 @@ filter <- apply(rna, 1, function(x) length(x[x>5])>=2)
 counts_rna <- as.matrix(rna[filter,])
 
 ## Calling the function for simulation and plotting
+
 #pdf("batch-pca.pdf")
 # You can run this script N times to obtain mean and standard deviation for the sensitivity
 # and specificity curves
 # for(j in 1:50){
+# For various batch coefficients increasing from 0 (No batch) 
+# to 1.3 (batch accounting for 40% variance)
 par_bcoeff = c(0,seq(0.1,1.3,by=0.2))
 for(i in 1:length(par_bcoeff)){
   results = get_DTG(counts_ribo, counts_rna, bcoeff=par_bcoeff[i], bgenes = 10, 
-                    te_genes=10, num_samples=4, conditions=2, all_methods = TRUE) 
+                    te_genes=10, num_samples=4, conditions=2) 
 }
 #}
 #dev.off()
