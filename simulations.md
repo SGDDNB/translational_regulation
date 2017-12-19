@@ -14,7 +14,7 @@ library(RColorBrewer)
 Simulating Ribo-seq and RNA-seq counts with batch effect
 ========================================================
 
-We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package10. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 20 times to obtain mean and standard deviations for each batch effect setting.
+We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 20 times to obtain mean and standard deviations for each batch effect setting.
 
 Detecting differential translation genes (DTGs)
 ===============================================
@@ -281,13 +281,11 @@ plot_ss=function(res_all,labels,dTE_genes,bcoeff,bgenes){
   ## Plotting the true positives and false positives
   par(mar=c(8,4,1,1)) 
   barplot(tp_fn[1,],col="darkgreen",ylab="# True positives",border=NA, ylim=c(0,dTE_genes))
-  axis(1, at=seq(1,7,by=1),labels=c("DESeq2","Riborex: DESeq2","Riborex: edgeR",
-    "Riborex: edgeRD","Riborex: voom","Xtail","RiboDiff"), col.axis="black", las=2)
+  axis(1, at=seq(1,4,by=1),labels=c("DESeq2","Riborex: DESeq2","Xtail","RiboDiff"), col.axis="black", las=2)
 
   par(mar=c(8,4,1,1)) 
   barplot(tn_fp[2,],col="red",border=NA, ylim=c(0,dTE_genes), ylab="# False positives")
-  axis(1, at=seq(1,7,by=1),labels=c("DESeq2","Riborex: DESeq2","Riborex: edgeR",
-    "Riborex: edgeRD","Riborex: voom","Xtail","RiboDiff"), col.axis="black", las=2)
+  axis(1, at=seq(1,4,by=1),labels=c("DESeq2","Riborex: DESeq2","Xtail","RiboDiff"), col.axis="black", las=2)
 }
 ```
 
@@ -351,7 +349,7 @@ counts_rna <- as.matrix(rna[filter,])
 # For various batch coefficients increasing from 0 (No batch) 
 # to 1.3 (batch accounting for 40% variance)
 # par_bcoeff = c(0,seq(0,1.3,by=0.2))
-par_bcoeff = c(0,seq(0.9,0.9,by=0.2))
+par_bcoeff = 0.9
 for(i in 1:length(par_bcoeff)){
   results = get_DTG(counts_ribo, counts_rna, bcoeff=par_bcoeff[i], bgenes = 10, 
                     te_genes=10, num_samples=4, conditions=2) 
@@ -420,81 +418,11 @@ for(i in 1:length(par_bcoeff)){
 
     ## Number of the log2FC and log2R used in determining the final p-value
 
-    ##  log2FC: 6704
+    ##  log2FC: 6639
 
-    ##  log2R: 6273
+    ##  log2R: 6230
 
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-3.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-4.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-5.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-6.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-7.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-8.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6665
-
-    ##  log2R: 6204
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-9.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-10.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-11.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-12.png)
+![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-3.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-4.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-5.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-6.png)
 
 ``` r
 #}

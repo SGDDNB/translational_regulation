@@ -2,8 +2,8 @@
 title: "Supplementary methods"
 subtitle: Benchmarking of different methods for detection of DTGs on simulated data
 output:
-  #github_document: default
-  pdf_document: default
+  github_document: default
+  #pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
