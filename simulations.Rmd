@@ -2,7 +2,7 @@
 title: "Supplementary methods"
 subtitle: Benchmarking of different methods for detection of DTGs on simulated data
 output:
-  github_document: default
+  #github_document: default
   pdf_document: default
 ---
 
@@ -23,7 +23,7 @@ library(RColorBrewer)
 
 # Simulating Ribo-seq and RNA-seq counts with batch effect
 
-We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package10. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 50 times to obtain mean and standard deviations for each batch effect setting.
+We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 20 times to obtain mean and standard deviations for each batch effect setting.
 
 
 # Detecting differential translation genes (DTGs)
@@ -142,10 +142,52 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
     batch1 <- coldata$batch[which(coldata$seq_type == "Ribo")]
     
     vsd <- vst(sim_ribo,nsub=900)
-    plotPCA(vsd,1,2,coldata,"Before batch correction")
+    pca_all <- (prcomp(t(vsd)))
+    pca_all_data <- pca_all$x
+    pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
+    percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
+    
+    pca_all_data$pch <- pca_all_data$group
+    pca_all_data$col_type <- pca_all_data$batch
+    
+    pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
+    
+    pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
+    pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
+    
+    plot(pca_all_data[,1], pca_all_data[,2], col=pca_all_data$col_type,
+         pch=as.numeric(pca_all_data$pch), xlab=paste("PC", 1, ": ", 
+                    round(percentVar[1], 2)*100, "% variance", sep=""), 
+         ylab=paste("PC", 2, ": ", round(percentVar[2], 2)*100, "% variance", sep=""), 
+         main="Before batch correction",cex=2)
+
     
     vsd_nobatch <- removeBatchEffect(vsd, batch1)
-    plotPCA(vsd_nobatch,1,2,coldata, "After batch correction")
+    pca_all <- (prcomp(t(vsd_nobatch)))
+    pca_all_data <- pca_all$x
+    pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
+    percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
+    
+    pca_all_data$pch <- pca_all_data$group
+    pca_all_data$col_type <- pca_all_data$batch
+    
+    pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
+    
+    pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
+    pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
+    
+    plot(pca_all_data[,1], pca_all_data[,2], col=pca_all_data$col_type,
+         pch=as.numeric(pca_all_data$pch), xlab=paste("PC", 1, ": ", 
+                    round(percentVar[1], 2)*100, "% variance", sep=""), 
+         ylab=paste("PC", 2, ": ", round(percentVar[2], 2)*100, "% variance", sep=""), 
+         main="After batch correction",cex=2)
+
     
     res_all <- matrix(nrow=nrow(res),ncol=4)
     res_all[,1] = res$padj
@@ -249,53 +291,24 @@ plot_ss=function(res_all,labels,dTE_genes,bcoeff,bgenes){
   ## Plotting the true positives and false positives
   par(mar=c(8,4,1,1)) 
   barplot(tp_fn[1,],col="darkgreen",ylab="# True positives",border=NA, ylim=c(0,dTE_genes))
-  axis(1, at=seq(1,7,by=1),labels=c("DESeq2","Riborex: DESeq2","Riborex: edgeR",
-    "Riborex: edgeRD","Riborex: voom","Xtail","RiboDiff"), col.axis="black", las=2)
+  axis(1, at=seq(1,4,by=1),labels=c("DESeq2","Riborex: DESeq2","Xtail","RiboDiff"), col.axis="black", las=2)
 
   par(mar=c(8,4,1,1)) 
   barplot(tn_fp[2,],col="red",border=NA, ylim=c(0,dTE_genes), ylab="# False positives")
-  axis(1, at=seq(1,7,by=1),labels=c("DESeq2","Riborex: DESeq2","Riborex: edgeR",
-    "Riborex: edgeRD","Riborex: voom","Xtail","RiboDiff"), col.axis="black", las=2)
+  axis(1, at=seq(1,4,by=1),labels=c("DESeq2","Riborex: DESeq2","Xtail","RiboDiff"), col.axis="black", las=2)
 }
 
 
 
 ```
 
-
-```{r plot PCA}
-plotPCA <- function(data, comp1, comp2, coldata,title){
-pca_all <- (prcomp(t(data)))
-pca_all_data <- pca_all$x
-pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
-percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
-
-pca_all_data$pch <- pca_all_data$group
-pca_all_data$col_type <- pca_all_data$batch
-
-pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
-pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
-pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
-pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
-
-pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
-pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
-
-plot(pca_all_data[,comp1], pca_all_data[,comp2], col=pca_all_data$col_type,
-     pch=as.numeric(pca_all_data$pch), xlab=paste("PC", comp1, ": ", 
-                round(percentVar[comp1], 2)*100, "% variance", sep=""), 
-     ylab=paste("PC", comp2, ": ", round(percentVar[comp2], 2)*100, "% variance", sep=""), 
-     main=title,cex=2)
-}
-
-```
 
 ### Using real dataset counts to simulate 
 
 Ribo-seq and RNA-seq data from the following paper was used to simulate read counts:  
 Schafer, S. et al. Translational regulation shapes the molecular landscape of complex disease phenotypes. Nat. Commun. 6, 7200 (2015).  
 
-Simulations were carried out 50 times each for different batch coefficients.
+Simulations were carried out 20 times each for different batch coefficients.
 
 ```{r rat_data}
 
@@ -347,10 +360,11 @@ counts_rna <- as.matrix(rna[filter,])
 #pdf("batch-pca.pdf")
 # You can run this script N times to obtain mean and standard deviation for the sensitivity
 # and specificity curves
-# for(j in 1:50){
+# for(j in 1:20){
 # For various batch coefficients increasing from 0 (No batch) 
 # to 1.3 (batch accounting for 40% variance)
-par_bcoeff = c(0,seq(0.1,1.3,by=0.2))
+# par_bcoeff = c(0,seq(0,1.3,by=0.2))
+par_bcoeff = 0.9
 for(i in 1:length(par_bcoeff)){
   results = get_DTG(counts_ribo, counts_rna, bcoeff=par_bcoeff[i], bgenes = 10, 
                     te_genes=10, num_samples=4, conditions=2) 

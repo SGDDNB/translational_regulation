@@ -14,7 +14,7 @@ library(RColorBrewer)
 Simulating Ribo-seq and RNA-seq counts with batch effect
 ========================================================
 
-We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package10. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 50 times to obtain mean and standard deviations for each batch effect setting.
+We simulated counts based on a published rat RNA-seq and Ribo-seq dataset with 4 control samples, randomly assigning two as condition 1 and two as condition 2. The fold changes were sampled from a gamma distribution (k=0.6, =0.5) and sample batch effect with varying batch coefficient from 0 to 1 was introduced using Polyester package10. We randomly assigned 10% of the genes a fold change of 1.5 higher in Ribo-seq or RNA-seq in one of the two conditions and those 10% of genes were also assigned a batch coefficient. This sampling and simulation was carried out 20 times to obtain mean and standard deviations for each batch effect setting.
 
 Detecting differential translation genes (DTGs)
 ===============================================
@@ -133,10 +133,52 @@ get_DTG=function(counts_ribo, counts_rna, bcoeff, bgenes, te_genes, num_samples,
     batch1 <- coldata$batch[which(coldata$seq_type == "Ribo")]
     
     vsd <- vst(sim_ribo,nsub=900)
-    plotPCA(vsd,1,2,coldata,"Before batch correction")
+    pca_all <- (prcomp(t(vsd)))
+    pca_all_data <- pca_all$x
+    pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
+    percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
+    
+    pca_all_data$pch <- pca_all_data$group
+    pca_all_data$col_type <- pca_all_data$batch
+    
+    pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
+    
+    pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
+    pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
+    
+    plot(pca_all_data[,1], pca_all_data[,2], col=pca_all_data$col_type,
+         pch=as.numeric(pca_all_data$pch), xlab=paste("PC", 1, ": ", 
+                    round(percentVar[1], 2)*100, "% variance", sep=""), 
+         ylab=paste("PC", 2, ": ", round(percentVar[2], 2)*100, "% variance", sep=""), 
+         main="Before batch correction",cex=2)
+
     
     vsd_nobatch <- removeBatchEffect(vsd, batch1)
-    plotPCA(vsd_nobatch,1,2,coldata, "After batch correction")
+    pca_all <- (prcomp(t(vsd_nobatch)))
+    pca_all_data <- pca_all$x
+    pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
+    percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
+    
+    pca_all_data$pch <- pca_all_data$group
+    pca_all_data$col_type <- pca_all_data$batch
+    
+    pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
+    pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
+    
+    pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
+    pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
+    
+    plot(pca_all_data[,1], pca_all_data[,2], col=pca_all_data$col_type,
+         pch=as.numeric(pca_all_data$pch), xlab=paste("PC", 1, ": ", 
+                    round(percentVar[1], 2)*100, "% variance", sep=""), 
+         ylab=paste("PC", 2, ": ", round(percentVar[2], 2)*100, "% variance", sep=""), 
+         main="After batch correction",cex=2)
+
     
     res_all <- matrix(nrow=nrow(res),ncol=4)
     res_all[,1] = res$padj
@@ -249,38 +291,12 @@ plot_ss=function(res_all,labels,dTE_genes,bcoeff,bgenes){
 }
 ```
 
-``` r
-plotPCA <- function(data, comp1, comp2, coldata,title){
-pca_all <- (prcomp(t(data)))
-pca_all_data <- pca_all$x
-pca_all_data <- cbind(as.data.frame(pca_all_data), coldata[1:8,])
-percentVar <- pca_all$sdev^2 / sum(pca_all$sdev^2)
-
-pca_all_data$pch <- pca_all_data$group
-pca_all_data$col_type <- pca_all_data$batch
-
-pca_all_data$col_type <- sub("1", "darkmagenta", pca_all_data$col_type)
-pca_all_data$col_type <- sub("3", "darkgreen", pca_all_data$col_type)
-pca_all_data$col_type <- sub("2", "turquoise3", pca_all_data$col_type)
-pca_all_data$col_type <- sub("4", "orange", pca_all_data$col_type)
-
-pca_all_data$pch <- sub("0", 2, pca_all_data$pch)
-pca_all_data$pch <- sub("1", 3, pca_all_data$pch)
-
-plot(pca_all_data[,comp1], pca_all_data[,comp2], col=pca_all_data$col_type,
-     pch=as.numeric(pca_all_data$pch), xlab=paste("PC", comp1, ": ", 
-                round(percentVar[comp1], 2)*100, "% variance", sep=""), 
-     ylab=paste("PC", comp2, ": ", round(percentVar[comp2], 2)*100, "% variance", sep=""), 
-     main=title,cex=2)
-}
-```
-
 ### Using real dataset counts to simulate
 
 Ribo-seq and RNA-seq data from the following paper was used to simulate read counts:
 Schafer, S. et al. Translational regulation shapes the molecular landscape of complex disease phenotypes. Nat. Commun. 6, 7200 (2015).
 
-Simulations were carried out 50 times each for different batch coefficients.
+Simulations were carried out 20 times each for different batch coefficients.
 
 ``` r
 ### Ribo-seq data
@@ -331,10 +347,11 @@ counts_rna <- as.matrix(rna[filter,])
 #pdf("batch-pca.pdf")
 # You can run this script N times to obtain mean and standard deviation for the sensitivity
 # and specificity curves
-# for(j in 1:50){
+# for(j in 1:20){
 # For various batch coefficients increasing from 0 (No batch) 
 # to 1.3 (batch accounting for 40% variance)
-par_bcoeff = c(0,seq(0.1,1.3,by=0.2))
+# par_bcoeff = c(0,seq(0,1.3,by=0.2))
+par_bcoeff = c(0,seq(0.9,0.9,by=0.2))
 for(i in 1:length(par_bcoeff)){
   results = get_DTG(counts_ribo, counts_rna, bcoeff=par_bcoeff[i], bgenes = 10, 
                     te_genes=10, num_samples=4, conditions=2) 
@@ -403,9 +420,9 @@ for(i in 1:length(par_bcoeff)){
 
     ## Number of the log2FC and log2R used in determining the final p-value
 
-    ##  log2FC: 6759
+    ##  log2FC: 6704
 
-    ##  log2R: 6232
+    ##  log2R: 6273
 
 ![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-3.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-4.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-5.png)
 
@@ -473,431 +490,11 @@ for(i in 1:length(par_bcoeff)){
 
     ## Number of the log2FC and log2R used in determining the final p-value
 
-    ##  log2FC: 6683
+    ##  log2FC: 6665
 
-    ##  log2R: 6303
+    ##  log2R: 6204
 
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-9.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-10.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-11.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-12.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-13.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-14.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6740
-
-    ##  log2R: 6213
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-15.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-16.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-17.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-18.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-19.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-20.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6688
-
-    ##  log2R: 6235
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-21.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-22.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-23.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-24.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-25.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-26.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6600
-
-    ##  log2R: 6299
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-27.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-28.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-29.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-30.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-31.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-32.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6837
-
-    ##  log2R: 6018
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-33.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-34.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-35.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-36.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-37.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-38.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6704
-
-    ##  log2R: 6120
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-39.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-40.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-41.png)
-
-    ## converting counts to integer mode
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-42.png)
-
-    ## converting counts to integer mode
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-43.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-44.png)
-
-    ## DESeq2 mode selected
-
-    ## combining design matrix
-
-    ## converting counts to integer mode
-
-    ## applying DESeq2 to modified design matrix
-
-    ## estimating size factors
-
-    ## estimating dispersions
-
-    ## gene-wise dispersion estimates
-
-    ## mean-dispersion relationship
-
-    ## final dispersion estimates
-
-    ## fitting model and testing
-
-    ## Calculating the library size factors
-
-    ## 1. Estimate the log2 fold change in mrna
-
-    ## converting counts to integer mode
-
-    ## 2. Estimate the log2 fold change in rpf
-
-    ## converting counts to integer mode
-
-    ## 3. Estimate the difference between two log2 fold changes
-
-    ## 4. Estimate the log2 ratio in first condition
-
-    ## converting counts to integer mode
-
-    ## 5. Estimate the log2 ratio in second condition
-
-    ## converting counts to integer mode
-
-    ## 6. Estimate the difference between two log2 ratios
-
-    ## Number of the log2FC and log2R used in determining the final p-value
-
-    ##  log2FC: 6690
-
-    ##  log2R: 6112
-
-![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-45.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-46.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-47.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-48.png)
+![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-9.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-10.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-11.png)![](simulations_files/figure-markdown_github-ascii_identifiers/rat_data-12.png)
 
 ``` r
 #}
