@@ -1,5 +1,5 @@
 ---
-title:  "Detection of differential translation genes (DTGs) using DESeq2 interaction term"
+title:  "Detection of differential-TE genes (DTEGs) using DESeq2 interaction term"
 output:
   #pdf_document
   #html_document
