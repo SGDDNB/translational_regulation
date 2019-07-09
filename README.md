@@ -1,6 +1,6 @@
 Calculating differentially-TE genes (DTEGs) requires the count matrices for both Ribo-seq and RNA-seq. These should be the raw counts obtained from feature counts (or any other read counting software), they should not be normalized or batch corrected. Each row should represent a gene and each column represents a sample. The matrix should have a header as shown below.
 
-Ribo-seq counts (RPFs)
+Ribo-seq count matrix (RPFs): 
 
  | Gene ID | Sample 1 | Sample 2 | Sample 3 | Sample 4 |
  | --------|----------|----------|----------|----------|
@@ -13,12 +13,38 @@ Ribo-seq counts (RPFs)
  | Gene Z  | 200	     | 140	| 15	   | 11	      |
 
 
+RNA-seq count matrix (mRNA counts): 
+
+ | Gene ID | Sample 5 | Sample 6 | Sample 7 | Sample 8 |
+ | --------|----------|----------|----------|----------|
+ | Gene 1  | 1290     | 130      | 2	   | 1000     |
+ | Gene 2  | 2	     | 10	| 5	   | 1	      |
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | Gene Z  | 200	     | 140	| 15	   | 11	      |
+
 
 Next, we also need to prepare a also requires a sample information file which should follow the same sample order as count matrices. This file outlines the condition, sequencing type and batch for each sample. This script requires the same header names as shown below (case sensitive). If your experiment has more covariates it is recommended to use the Alternate protocol.
 
-Running script DTEG.R to detect
+Sample information file:
 
-Once the input files are ready the script DTEG.R can be executed on bash command line as follows:
+ | SampleID | Condition | SeqType | Batch |
+ | --------|----------|----------|----------|
+ | Sample 1  | 1     | RIBO      | 1	   | 
+ | Sample 2  | 1     | RIBO      | 2	   | 
+ | Sample 3  | 2     | RIBO      | 3	   | 
+ | Sample 4  | 2     | RIBO      | 4	   | 
+ | Sample 5  | 1     | RNA      | 1	   | 
+ | Sample 6  | 1     | RNA      | 2	   | 
+ | Sample 7  | 2     | RNA      | 3	   | 
+ | Sample 8  | 2     | RNA      | 4	   | 
+
+
+Running script DTEG.R for detection and classification of DTGs and DTEGs
+
+Once the input files are ready the script DTEG.R can be executed on the bash shell prompt as follows:
 $ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6
 where,
 	Argument 1 (arg1): Ribo-seq count matrix
