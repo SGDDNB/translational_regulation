@@ -49,7 +49,7 @@ Sample information file:
 **Running script DTEG.R for detection and classification of DTGs and DTEGs**  
 Once the input files are ready the script DTEG.R can be executed on the bash shell prompt as follows:
 
-<p> $ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6 <p>  
+$ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6  
 where,  
       Argument 1 (arg1): Ribo-seq count matrix  
       Argument 2 (arg2): RNA-seq count matrix  
