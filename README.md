@@ -2,15 +2,15 @@ Calculating differentially-TE genes (DTEGs) requires the count matrices for both
 
 Ribo-seq counts (RPFs)
 
-| Gene ID | Sample 1 | Sample 2 | Sample 3 | Sample 4 |
-| --------------------------------------------------- |
-| Gene 1  | 1290     | 130      | 2	   | 1000     |
-| Gene 2  | 2	     | 10	| 5	   | 1	      |
-| ..	  |	     | 		|	   |	      |	
-| ..	  |	     | 		|	   |	      |	
-| ..	  |	     | 		|	   |	      |	
-| ..	  |	     | 		|	   |	      |	
-| Gene Z  | 200	     | 140	| 15	   | 11	      |
+ | Gene ID | Sample 1 | Sample 2 | Sample 3 | Sample 4 |
+ | --------|----------|----------|----------|----------|
+ | Gene 1  | 1290     | 130      | 2	   | 1000     |
+ | Gene 2  | 2	     | 10	| 5	   | 1	      |
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | ..	  |	     | 		|	   |	      |	
+ | Gene Z  | 200	     | 140	| 15	   | 11	      |
 
 
 
