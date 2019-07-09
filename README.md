@@ -1,7 +1,7 @@
 ## Detection and classification of differential translation-efficiency genes with DTEG.R
 
 
-**Preparing input files**
+**Preparing input files**  
 Calculating differentially-TE genes (DTEGs) requires the count matrices for both Ribo-seq and RNA-seq. These should be the raw counts obtained from feature counts (or any other read counting software), they should not be normalized or batch corrected. Each row should represent a gene and each column represents a sample. The matrix should have a header as shown below.
 
 Ribo-seq count matrix (RPFs): 
@@ -46,10 +46,10 @@ Sample information file:
  | Sample 8  | 2     | RNA      | 4	   | 
 
 
-**Running script DTEG.R for detection and classification of DTGs and DTEGs**
+**Running script DTEG.R for detection and classification of DTGs and DTEGs**  
 Once the input files are ready the script DTEG.R can be executed on the bash shell prompt as follows:
 
-$ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6
+<p> $ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6 <p>  
 where,  
       Argument 1 (arg1): Ribo-seq count matrix  
       Argument 2 (arg2): RNA-seq count matrix  
