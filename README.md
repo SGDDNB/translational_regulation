@@ -45,14 +45,18 @@ Sample information file:
 Running script DTEG.R for detection and classification of DTGs and DTEGs
 
 Once the input files are ready the script DTEG.R can be executed on the bash shell prompt as follows:
+
 $ Rscript --vanilla DTEG.R arg1 arg2 arg3 arg4 arg5 arg6
-where,
-	Argument 1 (arg1): Ribo-seq count matrix
-	Argument 2 (arg2): RNA-seq count matrix
-	Argument 3 (arg3): Sample information file
-	Argument 4 (arg4): Batch effect covariate yes=1, or no=0
-	Argument 5 (arg5): Default = 1, Save Rdata
-	Argument 6 (arg6): Default = 0, Verbose mode
+
+where,  
+	Argument 1 (arg1): Ribo-seq count matrix  
+	Argument 2 (arg2): RNA-seq count matrix  
+	Argument 3 (arg3): Sample information file  
+	Argument 4 (arg4): Batch effect covariate yes=1, or no=0  
+	Argument 5 (arg5): Default = 1, Save Rdata  
+	Argument 6 (arg6): Default = 0, Verbose mode  
+
 Example: 
+
 $ Rscript --vanilla DTEG.R ribo_counts.txt rna_counts.txt sample_info.txt 1
 
