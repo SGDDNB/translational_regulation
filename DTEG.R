@@ -83,8 +83,10 @@ if(batch == 1){
   ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
     geom_point(size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-    ylab(paste0("PC2: ",percentVar[2],"% variance")) 
-}else if(batch ==0){
+    ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                                             panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
+
+  }else if(batch ==0){
   ddsMat_ribo <- DESeqDataSetFromMatrix(countData = ribo,
                                         colData = coldata_ribo, design =~ Condition)
   vsd <- vst(ddsMat_ribo)
@@ -93,11 +95,13 @@ if(batch == 1){
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-    ylab(paste0("PC2: ",percentVar[2],"% variance")) 
+    ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                                             panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
 }
 
 ddsMat_ribo <- DESeq(ddsMat_ribo)
 res_ribo <- results(ddsMat_ribo, contrast=list("Condition_2_vs_1"))
+res_ribo <- lfcShrink(ddsMat_ribo, contrast=c("Condition","2","1"),res=res_ribo)
 write.table(res_ribo,"fold_changes/deltaRibo.txt",quote=F,sep="\t",col.names = T,row.names = T)
 
 
@@ -114,7 +118,8 @@ if(batch == 1){
     ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
       geom_point(size=3) +
       xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-      ylab(paste0("PC2: ",percentVar[2],"% variance")) 
+      ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                                               panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
 }else if(batch ==0){
   ddsMat_rna <- DESeqDataSetFromMatrix(countData = rna,
                                        colData = coldata_rna, design =~ Condition)
@@ -124,12 +129,14 @@ if(batch == 1){
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-    ylab(paste0("PC2: ",percentVar[2],"% variance")) 
+    ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                                             panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(aspect.ratio=1)
 }
 ddsMat_rna <- DESeq(ddsMat_rna)
 
 
 res_rna <- results(ddsMat_rna, contrast=list("Condition_2_vs_1"))
+res_rna <- lfcShrink(ddsMat_rna, contrast=c("Condition","2","1"),res=res_rna)
 write.table(res_rna,"fold_changes/deltaRNA.txt",quote=F,sep="\t",col.names = T,row.names = T)
 write.table(rownames(res_rna)[which(res_rna$padj < 0.05)],"gene_lists/DTG.txt",quote=F,sep="\t",col.names = F,row.names = F)
 
