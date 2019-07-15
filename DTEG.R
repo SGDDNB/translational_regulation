@@ -100,7 +100,7 @@ if(batch == 1){
 }
 
 ddsMat_ribo <- DESeq(ddsMat_ribo)
-res_ribo <- results(ddsMat_ribo, contrast=list("Condition_2_vs_1"))
+res_ribo <- results(ddsMat_ribo, contrast=c("Condition","2","1"))
 res_ribo <- lfcShrink(ddsMat_ribo, contrast=c("Condition","2","1"),res=res_ribo)
 write.table(res_ribo,"fold_changes/deltaRibo.txt",quote=F,sep="\t",col.names = T,row.names = T)
 
@@ -135,7 +135,7 @@ if(batch == 1){
 ddsMat_rna <- DESeq(ddsMat_rna)
 
 
-res_rna <- results(ddsMat_rna, contrast=list("Condition_2_vs_1"))
+res_rna <- results(ddsMat_rna, contrast=c("Condition","2","1"))
 res_rna <- lfcShrink(ddsMat_rna, contrast=c("Condition","2","1"),res=res_rna)
 write.table(res_rna,"fold_changes/deltaRNA.txt",quote=F,sep="\t",col.names = T,row.names = T)
 write.table(rownames(res_rna)[which(res_rna$padj < 0.05)],"gene_lists/DTG.txt",quote=F,sep="\t",col.names = F,row.names = F)
