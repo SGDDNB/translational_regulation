@@ -47,7 +47,7 @@ if(batch == 1){
   stop("Batch presence should be indicated by 0 or 1 only", call.=FALSE)
 }
 
-ddsMat$SeqType = relevel(ddsMat$SeqType,"RNA-seq")
+ddsMat$SeqType = relevel(ddsMat$SeqType,"RNA")
 ddsMat <- DESeq(ddsMat)
 resultsNames(ddsMat)
 
@@ -59,7 +59,7 @@ system("mkdir gene_lists")
 # Choose the term you want to look at from resultsNames(ddsMat) 
 # Condition2.SeqTypeRibo.seq means Changes in Ribo-seq levels in Condition2 vs
 # Condition1 accounting for changes in RNA-seq levels in Condition2 vs Condition1
-res <- results(ddsMat, contrast=list("Condition2.SeqTypeRibo.seq"))
+res <- results(ddsMat, contrast=list("Condition2.SeqTypeRIBO"))
 summary(res)
 length(which(res$padj < 0.05))
 write.table(rownames(res)[which(res$padj < 0.05)],"gene_lists/DTEGs.txt",quote=F,sep="\t",col.names = F,row.names = F)
@@ -70,7 +70,7 @@ pdf("Result_figures.pdf",useDingbats = F)
 ## Visualisation and interpretation
 
 ### DESeq2 object with batch for Ribo-seq
-ind = which(coldata$SeqType == "Ribo-seq")
+ind = which(coldata$SeqType == "RIBO")
 coldata_ribo = coldata[ind,]
 
 # PCA 
@@ -106,7 +106,7 @@ write.table(res_ribo,"fold_changes/deltaRibo.txt",quote=F,sep="\t",col.names = T
 
 
 ### DESeq2 object with batch for RNA-seq
-ind = which(coldata$SeqType == "RNA-seq")
+ind = which(coldata$SeqType == "RNA")
 coldata_rna = coldata[ind,]
 # PCA 
 if(batch == 1){
