@@ -21,13 +21,17 @@ rna_file <- args[2]
 data_file <- args[3]
 batch <- args[4]
 
-# Read and merge count matrices
+# Read count matrices
 ribo <- read.delim(ribo_file)
+rna <- read.delim(rna_file)
+
+# Process count matrices: use the first column as rownames and drop the first column
 rownames(ribo) <- ribo[,1]
 ribo <- ribo[,-1]
-rna <- read.delim(rna_file)
 rownames(rna) <- rna[,1]
 rna <- rna[,-1]
+
+# merge count matrices
 merge <- cbind(ribo,rna)
 
 head(merge)
@@ -86,6 +90,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -98,6 +103,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -121,6 +127,7 @@ if(batch == 1){
     percentVar <- round(100 * attr(pcaData, "percentVar"))
     ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
       geom_point(size=3) +
+      geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
       xlab(paste0("PC1: ",percentVar[1],"% variance")) +
       ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                                panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -132,6 +139,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(aspect.ratio=1)
