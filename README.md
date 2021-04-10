@@ -66,3 +66,5 @@ where,
 Example: 
 $ Rscript --vanilla DTEG.R ribo_counts.txt rna_counts.txt sample_info.txt 1
 
+
+**Note: Log fold shrinkage function usage is updated now to adapt to latest DESeq2 version updates**
