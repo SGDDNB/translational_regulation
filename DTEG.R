@@ -76,7 +76,7 @@ coldata_ribo = coldata[ind,]
 # PCA 
 if(batch == 1){
   ddsMat_ribo <- DESeqDataSetFromMatrix(countData = ribo,
-                                        colData = coldata_ribo, design =~ Batch + Condition)
+                                        colData = coldata_ribo, design =~ Condition + Batch)
   vsd <- vst(ddsMat_ribo)
   pcaData <- plotPCA(vsd, intgroup=c("Condition", "Batch"), returnData=TRUE)
   percentVar <- round(100 * attr(pcaData, "percentVar"))
@@ -101,7 +101,7 @@ if(batch == 1){
 
 ddsMat_ribo <- DESeq(ddsMat_ribo)
 res_ribo <- results(ddsMat_ribo, contrast=c("Condition","2","1"))
-res_ribo <- lfcShrink(ddsMat_ribo, contrast=c("Condition","2","1"),res=res_ribo)
+res_ribo <- lfcShrink(ddsMat_ribo, coef=2,res=res_ribo,type="apeglm")
 write.table(res_ribo,"fold_changes/deltaRibo.txt",quote=F,sep="\t",col.names = T,row.names = T)
 
 
@@ -111,7 +111,7 @@ coldata_rna = coldata[ind,]
 # PCA 
 if(batch == 1){
     ddsMat_rna <- DESeqDataSetFromMatrix(countData = rna,
-                                       colData = coldata_rna, design =~ Batch + Condition)
+                                       colData = coldata_rna, design =~ Condition + Batch)
     vsd <- vst(ddsMat_rna)
     pcaData <- plotPCA(vsd, intgroup=c("Condition", "Batch"), returnData=TRUE)
     percentVar <- round(100 * attr(pcaData, "percentVar"))
@@ -136,7 +136,7 @@ ddsMat_rna <- DESeq(ddsMat_rna)
 
 
 res_rna <- results(ddsMat_rna, contrast=c("Condition","2","1"))
-res_rna <- lfcShrink(ddsMat_rna, contrast=c("Condition","2","1"),res=res_rna)
+res_rna <- lfcShrink(ddsMat_rna, coef=2,type="apeglm",res=res_rna)
 write.table(res_rna,"fold_changes/deltaRNA.txt",quote=F,sep="\t",col.names = T,row.names = T)
 write.table(rownames(res_rna)[which(res_rna$padj < 0.05)],"gene_lists/DTG.txt",quote=F,sep="\t",col.names = F,row.names = F)
 
