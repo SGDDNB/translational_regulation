@@ -2,10 +2,10 @@ library(DESeq2)
 library(ggplot2)
 ## Input files
 # Calculating differential translation genes (DTGs) requires the count matrices from Ribo-seq and RNA-seq.
-# These should be the raw counts obtained from feature counts or any other tool for counting reads, 
+# These should be the raw counts obtained from feature counts or any other tool for counting reads,
 # they should not be normalized or batch corrected.
 # It also requires a sample information file which should be in the same order as samples in the count
-# matrices. It should include information on sequencing type, treatment, batch or any other covariate you 
+# matrices. It should include information on sequencing type, treatment, batch or any other covariate you
 # need to model.
 
 ### Get count matrix files and sample information
@@ -13,7 +13,7 @@ args = commandArgs(trailingOnly=TRUE)
 # test if there is at least one argument: if not, return an error
 if (length(args)!=4) {
   stop("Ribo-seq counts, RNA-seq counts and Sample Information and batch presence (0/1) should be supplied.n", call.=FALSE)
-} 
+}
 
 # Input filenames
 ribo_file <- args[1]
@@ -21,9 +21,17 @@ rna_file <- args[2]
 data_file <- args[3]
 batch <- args[4]
 
-# Read and merge count matrices
-ribo <- read.delim(ribo_file)  
+# Read count matrices
+ribo <- read.delim(ribo_file)
 rna <- read.delim(rna_file)
+
+# Process count matrices: use the first column as rownames and drop the first column
+rownames(ribo) <- ribo[,1]
+ribo <- ribo[,-1]
+rownames(rna) <- rna[,1]
+rna <- rna[,-1]
+
+# merge count matrices
 merge <- cbind(ribo,rna)
 
 head(merge)
@@ -56,7 +64,7 @@ setwd("Results")
 system("mkdir fold_changes")
 system("mkdir gene_lists")
 
-# Choose the term you want to look at from resultsNames(ddsMat) 
+# Choose the term you want to look at from resultsNames(ddsMat)
 # Condition2.SeqTypeRibo.seq means Changes in Ribo-seq levels in Condition2 vs
 # Condition1 accounting for changes in RNA-seq levels in Condition2 vs Condition1
 res <- results(ddsMat, contrast=list("Condition2.SeqTypeRIBO"))
@@ -73,7 +81,7 @@ pdf("Result_figures.pdf",useDingbats = F)
 ind = which(coldata$SeqType == "RIBO")
 coldata_ribo = coldata[ind,]
 
-# PCA 
+# PCA
 if(batch == 1){
   ddsMat_ribo <- DESeqDataSetFromMatrix(countData = ribo,
                                         colData = coldata_ribo, design =~ Condition + Batch)
@@ -82,6 +90,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -94,6 +103,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -108,7 +118,7 @@ write.table(res_ribo,"fold_changes/deltaRibo.txt",quote=F,sep="\t",col.names = T
 ### DESeq2 object with batch for RNA-seq
 ind = which(coldata$SeqType == "RNA")
 coldata_rna = coldata[ind,]
-# PCA 
+# PCA
 if(batch == 1){
     ddsMat_rna <- DESeqDataSetFromMatrix(countData = rna,
                                        colData = coldata_rna, design =~ Condition + Batch)
@@ -117,6 +127,7 @@ if(batch == 1){
     percentVar <- round(100 * attr(pcaData, "percentVar"))
     ggplot(pcaData, aes(PC1, PC2, color=Condition, shape=Batch)) +
       geom_point(size=3) +
+      geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
       xlab(paste0("PC1: ",percentVar[1],"% variance")) +
       ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                                panel.background = element_blank(), axis.line = element_line(colour = "black"))+ theme(aspect.ratio=1)
@@ -128,6 +139,7 @@ if(batch == 1){
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ggplot(pcaData, aes(PC1, PC2, color=Condition)) +
     geom_point(size=3) +
+    geom_text(aes(label=name),hjust=0, vjust=0, size=3) +
     xlab(paste0("PC1: ",percentVar[1],"% variance")) +
     ylab(paste0("PC2: ",percentVar[2],"% variance")) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                                              panel.background = element_blank(), axis.line = element_line(colour = "black")) + theme(aspect.ratio=1)
@@ -167,7 +179,7 @@ goi = forwarded[1]
 y_u = max(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 y_l = min(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 plot(c(1,2),c(0,res[goi,2]),type="l",col="red",xaxt="n",
-     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change", 
+     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change",
      main="Forwarded gene")
 lines(c(1,2),c(0,res_ribo[goi,2]),col="gray")
 lines(c(1,2),c(0,res_rna[goi,2]),col="blue")
@@ -179,7 +191,7 @@ goi = exclusive[1]
 y_u = max(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 y_l = min(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 plot(c(1,2),c(0,res[goi,2]),type="l",col="red",xaxt="n",
-     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change", 
+     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change",
      main="Exclusive gene")
 lines(c(1,2),c(0,res_ribo[goi,2]),col="gray")
 lines(c(1,2),c(0,res_rna[goi,2]),col="blue")
@@ -191,7 +203,7 @@ goi = buffered[1]
 y_u = max(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 y_l = min(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 plot(c(1,2),c(0,res[goi,2]),type="l",col="red",xaxt="n",
-     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change", 
+     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change",
      main="Buffered gene")
 lines(c(1,2),c(0,res_ribo[goi,2]),col="gray")
 lines(c(1,2),c(0,res_rna[goi,2]),col="blue")
@@ -203,7 +215,7 @@ goi = intensified[1]
 y_u = max(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 y_l = min(res[goi,2],res_ribo[goi,2], res_rna[goi,2],0)
 plot(c(1,2),c(0,res[goi,2]),type="l",col="red",xaxt="n",
-     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change", 
+     xlab="Conditions",ylim=c(y_l,y_u),ylab="Log2 Fold Change",
      main="Intensified gene")
 lines(c(1,2),c(0,res_ribo[goi,2]),col="gray")
 lines(c(1,2),c(0,res_rna[goi,2]),col="blue")
@@ -212,8 +224,3 @@ legend("bottomleft",c("RNA","Ribo","RibOnly"), fill=c("blue","gray","red"),
        cex=1, border = NA, bty="n")
 
 dev.off()
-
-
-
-
-
